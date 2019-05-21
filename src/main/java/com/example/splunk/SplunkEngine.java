@@ -80,7 +80,7 @@ public class SplunkEngine   {
 
         JobArgs inputArgs = new JobArgs();
         JobResultsArgs resultsArgs = new JobResultsArgs();
-        resultsArgs.setOutputMode(JobResultsArgs.OutputMode.JSON);
+        resultsArgs.setOutputMode(JobResultsArgs.OutputMode.CSV);
 
         System.out.println(earliestTime);
 
@@ -100,39 +100,11 @@ public class SplunkEngine   {
 
         InputStream inpStream = job.getResults(resultsArgs);
 
-        ResultsReaderJson resultsReader = new ResultsReaderJson(inpStream);
+        ResultsReaderCsv resultsReader = new ResultsReaderCsv(inpStream);
         Event event = null;
         while ((event = resultsReader.getNextEvent()) != null) {
-            // Bad Workaround: I need to redefine the json to be more miningful (to double check splun rest api)
-            while ((event = resultsReader.getNextEvent()) != null) {
-                String finalJson = "{";
-                for (String key: event.keySet()) {
-                    if (key.equals("_raw")) {
-                        String tmpjson = "timestamp=";
-                        String values = tmpjson + event.get(key);
 
-                        Map<String, String> properties = Splitter.on(", ").withKeyValueSeparator("=").split(values);
-                        for (String key2: properties.keySet()) {
-                            if(key2.equals("timestamp")) {
-                                finalJson += "\"" + key2 + "\"" + ": \"" + properties.get(key2) + "\", ";
-                            }
-                            else
-                                finalJson += "\"" + key2 + "\"" + ":" + properties.get(key2) + ", ";
-                        }
-
-                    } else  {
-                        finalJson += "\"" + key + "\"" + ":\"" + event.get(key) + "\", ";
-                    }
-                }
-                if(finalJson.endsWith(", "))
-                {
-                    finalJson = finalJson.substring(0,finalJson.length() - 2);
-                    finalJson += "}";
-                }
-                System.out.println(finalJson + "\n");
-
-            }
-
+                System.out.println(event.toString() + "\n");
 
         }
 
