@@ -104,11 +104,15 @@ public class SplunkEngine   {
         Event event = null;
         while ((event = resultsReader.getNextEvent()) != null) {
             String finalCsvLine = "";
+
             for (String key: event.keySet()) {
+                String value = event.get(key);
+                value = value.replace("\n", "");
+                finalCsvLine += value + ",";
+            }
+            if (finalCsvLine.endsWith(",")) {
+                finalCsvLine = finalCsvLine.substring(0, finalCsvLine.length() - 1);
 
-
-                event.get(key);
-                finalCsvLine += event.get(key) + ",";
             }
             System.out.println(finalCsvLine + "\n");
 
