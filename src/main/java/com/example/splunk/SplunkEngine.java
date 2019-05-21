@@ -103,8 +103,14 @@ public class SplunkEngine   {
         ResultsReaderCsv resultsReader = new ResultsReaderCsv(inpStream);
         Event event = null;
         while ((event = resultsReader.getNextEvent()) != null) {
+            String finalCsvLine = "";
+            for (String key: event.keySet()) {
 
-                System.out.println(event.toString() + "\n");
+
+                event.get(key);
+                finalCsvLine += event.get(key) + ",";
+            }
+            System.out.println(finalCsvLine + "\n");
 
         }
 
