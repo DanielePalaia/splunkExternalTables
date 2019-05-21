@@ -82,8 +82,6 @@ public class SplunkEngine   {
         JobResultsArgs resultsArgs = new JobResultsArgs();
         resultsArgs.setOutputMode(JobResultsArgs.OutputMode.CSV);
 
-        System.out.println(earliestTime);
-
         inputArgs.setEarliestTime(earliestTime);
         inputArgs.setLatestTime(latestTime);
 
@@ -114,7 +112,7 @@ public class SplunkEngine   {
                 finalCsvLine = finalCsvLine.substring(0, finalCsvLine.length() - 1);
 
             }
-            System.out.println(finalCsvLine + "\n");
+            System.out.println(finalCsvLine);
 
         }
 

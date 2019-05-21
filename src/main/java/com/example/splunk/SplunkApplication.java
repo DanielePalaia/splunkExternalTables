@@ -5,14 +5,20 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.CommandLineRunner;
 import java.io.*;
 import java.util.*;
+import org.springframework.boot.Banner;
 
 
 
-@SpringBootApplication
+//@SpringBootApplication
 public class SplunkApplication implements CommandLineRunner {
 
 	public static void main(String[] args) {
-		SpringApplication.run(SplunkApplication.class, args);
+
+		SpringApplication app = new SpringApplication(SplunkApplication.class);
+		app.setBannerMode(Banner.Mode.OFF);
+		app.setLogStartupInfo(false);
+		app.run(args);
+
 	}
 
 	@Override
