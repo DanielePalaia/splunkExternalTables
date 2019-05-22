@@ -1,14 +1,11 @@
 ## Summary
 This software is intended to show how it is possible to integrate Splunk with Greenplum database. It exercises splunk java api 
 to make searches or to take all logs stored in Splunk and ingest a Greenplum table in order to do some other searches.</br>
-The ingestion is done using gpss and gpsscli functionalities of Greenplum.
-The software send all the logs on a kafka broker, and we need to start a gpsscli job in order to ingest a Greenplum table </br>
-
-https://gpdb.docs.pivotal.io/5160/greenplum-stream/loading-gpss.html</br>
-https://gpdb.docs.pivotal.io/5160/greenplum-stream/ref/gpsscli.html</br>
-
-It uses GPSS to ingest data in Greenplum so it works just for Greenplum 5.16 or above.</br>
-There are some initialization phases in order for the software to work. </br></br>
+The software is using external web table in order for Greenplum to query Splunk data. </br>
+This software continues the experiment done here: </br>
+https://github.com/DanielePalaia/gpss-splunk </br>
+A java script is created, this script is connecting to splunk and printing in consolle splunk logs. The idea is that every host search for a different date range in order to work in parallel.
+Then, the script can be embedded in a external web table definition.
 
 ## Prerequisites:
 ### 1. Bring some data to Splunk: 
@@ -27,64 +24,21 @@ dashboard=# select * from services limit 5; </br></br>
 Once loaded into splunk it will start to generate events and you will start to see logs like this:
 ![Screenshot](./images/image1.png)
 
-### 2. Start a kafka broker and create a topic:
-The software is gpsscli which is using Kafka. Start a kafka topic where you want and create a topic with the name you want
+### 2. Create a Greenplum external web table:
+Taking in account all informations contained in a splunk log, create an external web table like this:</br>
 
+CREATE EXTERNAL WEB TABLE log_output
+    (_bkt text, _cd text, serial text, id text, version text, environment text, service_level text, comapany_id text, top_service text, name text, splunk_server text, index text, source text, indextime text, subsecond text, linecount text, si text, hostname text, ip text, source_type text, sourceType text, time text)
+    EXECUTE '/home/gpadmin/splunk_data.sh' ON HOST
+    FORMAT 'CSV';
+    </br>
+For semplicity I put all fields as text but you can put the data type you want accodingly to the info received
+</br>
 
-### 3. Create a Greenplum output table:
-I will show you how to bring the same data you put in Splunk back again in Greenplum from the Splunk logs. Create an output table with the same field as the input table. </br>
-In the example case we have: </br></br>
-CREATE TABLE public.services (</br>
-    id bigint NOT NULL,</br>
-    version bigint NOT NULL,</br>
-    environment character varying(255) NOT NULL,</br>
-    service_level character varying(22) NOT NULL,</br>
-    company_id bigint NOT NULL,</br>
-    top_service character varying(3) NOT NULL,</br>
-    name character varying(255) NOT NULL</br>
-);</br>
-
-### 4. Start gpss server and gpsscli:
-Start gpss server and set a gpsscli job which will listen on the specified broker and topic. In my case for example gpss yaml is the one specified:
-
-DATABASE: dashboard</br>
-USER: gpadmin</br>
-HOST: localhost</br>
-PORT: 5432</br>
-KAFKA:</br>
-   INPUT:</br>
-     SOURCE:</br>
-        BROKERS: 172.16.125.1:9092</br>
-        TOPIC: zzzzz</br>
-     COLUMNS</br>:
-        - NAME: jdata</br>
-          TYPE: json</br>
-     FORMAT: json</br>
-     ERROR_LIMIT: 10</br>
-   OUTPUT:</br>
-     TABLE: services</br>
-     MAPPING:</br>
-        - NAME: id</br>
-          EXPRESSION: (jdata->>'id')::int</br>
-        - NAME: version</br>
-          EXPRESSION: (jdata->>'version')::int</br>
-        - NAME: environment</br>
-          EXPRESSION: (jdata->>'environment')::varchar(255)</br>
-        - NAME: service_level</br>
-          EXPRESSION: (jdata->>'service_level')::varchar(22)</br>
-        - NAME: company_id</br>
-          EXPRESSION: (jdata->>'company_id')::int</br>
-        - NAME: top_service</br>
-          EXPRESSION: (jdata->>'top_service')::varchar(3)</br>
-        - NAME: name</br>
-          EXPRESSION: (jdata->>'name')::varchar(255)</br>
-
-   COMMIT:</br>
-     MAX_ROW: 1000</br></br>
-     **Note: Messages are posted in Kakfa as Json in order to give the maximum flexibity on what we need and what we don't**</br>     
-     
-### 5. The software is written in Java so you need a JVM installed as well as Splunk
-You need also to create a .splunkrc  in your home directory specifying connection parameters like: </br>  
+    
+### 3. The software is written in Java so you need a JVM installed as well as Splunk
+Java needs to be installed on every host of the Greenplum distributed system </br> 
+In every segment host, you need also to create a .splunkrc  in your home directory specifying connection parameters like: </br>  
 
 host=localhost 
 #Splunk admin port (default: 8089) </br> 
@@ -98,38 +52,52 @@ scheme=https
 #Splunk version number   
 version=7.2.6   
  </br>
+ 
 ## Running the software:
 ### 1. Configuration file: </br>  
-The software is written in Java. in /target directory in you find the .jar file that can be executed. Also it needs a kafka.properties initialization file.
-Here you must specify the following info regarding the kafka broker </br>   
+In every segment host you need to specify a segment.properties file where you specify this parameters: </br>
+**earliest:2019-05-21T00:00:00**
+**latest:2019-05-21T23:59:00**
 
-host:localhost  
-port:9092  
-topic:zzzzz</br>  
+The idea is to specify different time range in different hosts.
 
-### 2. Run the jar </br>  
-Run the .jar in this way to search for all logs listed in Splunk (taking just the first 100 elements but you can specify more)</br>  
+### 2. Run the jar </br>
+Copy the .jar /target/splunk-0.0.1-SNAPSHOT.jar in /home/gpadmin </br>
+Create a /home/gpadmin/splunk_data.sh where you simply call the .jar</br>
 
-java -jar splunk-0.0.1-SNAPSHOT.jar "search * | head 100" </br>  
+java -jar /home/gpadmin/splunk-0.0.1-SNAPSHOT.jar "search * | head 100"</br>
+In this case will take just the first 100 elements but you can specify more
 
-You can also specify different type of searches </br>  
 
-### 3. Look at the messages inserted in the topic </br> 
-Information are stored as following (as you can look to the consolle:</br> 
+### 5. Have a look to the external table specified </br> 
+Just do a SELECT * FROM log_output;
+Then the /home/gpadmin/splunk_data.sh which is connecting to splunk and display csv lines will be invoked in order to see in a structured way:</br>
+dashboard=# select * from log_output limit 5; </br>
 
-{"_bkt":"main~2~3E1FBD62-AB28-4A3C-93D0-5D509AC308D9", "_cd":"2:13577445", "_serial":"96", "timestamp": "2019-05-16 16:42:40.632", "id":"10331", "version":"0", "environment":"Test", "service_level":"AO-Basic", "company_id":"42", "top_service":"NO", "name":"NAVIGATION (VF360)-TEST", "splunk_server":"Danieles-MBP.station", "index":"main", "source":"dahsboard", "_indextime":"1558017760", "_subsecond":".632", "linecount":"1", "_si":"Danieles-MBP.station,main", "host":"localhost", "_sourcetype":"string", "sourcetype":"string", "_time":"2019-05-16T16:42:40.632+02:00"} to topic: zzzzz</br> 
-sending: {"_bkt":"main~2~3E1FBD62-AB28-4A3C-93D0-5D509AC308D9", "_cd":"2:13577439", "_serial":"97", "timestamp": "2019-05-16 16:42:40.632", "id":"10330", "version":"0", "environment":"Test", "service_level":"AO-Basic", "company_id":"2", "top_service":"NO", "name":"MULTIMEDIA MESSAGING SERVICE_TEST", "splunk_server":"Danieles-MBP.station", "index":"main", "source":"dahsboard", "_indextime":"1558017760", "_subsecond":".632", "linecount":"1", "_si":"Danieles-MBP.station,main", "host":"localhost", "_sourcetype":"string", "sourcetype":"string", "_time":"2019-05-16T16:42:40.632+02:00"} to topic: zzzzz</br> 
-sending: {"_bkt":"main~2~3E1FBD62-AB28-4A3C-93D0-5D509AC308D9", "_cd":"2:13577431", "_serial":"98", "timestamp": "2019-05-16 16:42:40.632", "id":"10329", "version":"0", "environment":"Production", "service_level":"DC - Business Premium", "company_id":"37", "top_service":"NO", "name":"GSOC-LOCAL SECURITY INCIDENT-POLICY VIOLATION (DE)", "splunk_server":"Danieles-MBP.station", "index":"main", "source":"dahsboard", "_indextime":"1558017760", "_subsecond":".632", "linecount":"1", "_si":"Danieles-MBP.station,main", "host":"localhost", "_sourcetype":"string", "sourcetype":"string", "_time":"2019-05-16T16:42:40.632+02:00"} to topic: zzzzz</br> 
-sending: {"_bkt":"main~2~3E1FBD62-AB28-4A3C-93D0-5D509AC308D9", "_cd":"2:13577425", "_serial":"99", "timestamp": "2019-05-16 16:42:40.632", "id":"10328", "version":"0", "environment":"Production", "service_level":"AO-Basic", "company_id":"42", "top_service":"NO", "name":"VODAFONE LIVE PORTAL-TEST", "splunk_server":"Danieles-MBP.station", "index":"main", "source":"dahsboard", "_indextime":"1558017760", "_subsecond":".632", "linecount":"1", "_si":"Danieles-MBP.station,main", "host":"localhost", "_sourcetype":"string", "sourcetype":"string", "_time":"2019-05-16T16:42:40.632+02:00"} to topic: zzzzz</br> 
+                    _bkt                     |    _cd     | serial |           id            |  version  | environment |      service_level      |              comapany_id              |  top_service   |      na
+me       |              splunk_server              |        index         | source | indextime | subsecond  | linecount | si |         hostname         |    ip     | source_type | sourcetype |             time  
+            
+---------------------------------------------+------------+--------+-------------------------+-----------+-------------+-------------------------+---------------------------------------+----------------+--------
+---------+-----------------------------------------+----------------------+--------+-----------+------------+-----------+----+--------------------------+-----------+-------------+------------+-------------------
+------------
+ main~4~3E1FBD62-AB28-4A3C-93D0-5D509AC308D9 | 4:14430163 | 0      | 2019-05-22 10:24:13.183 |  id=10427 |  version=0  |  environment=Production |  service_level=DC - Business Premium  |  company_id=24 |  top_se
+rvice=NO |  name=GSOC-LOCAL SECURITY INCIDENT (PT) | Danieles-MBP.station | main   | dahsboard | 1558513453 | .183      | 1  | Danieles-MBP.stationmain | localhost | string      | string     | 2019-05-22T10:24:1
+3.183+02:00
+ main~4~3E1FBD62-AB28-4A3C-93D0-5D509AC308D9 | 4:14430156 | 1      | 2019-05-22 10:24:13.183 |  id=10426 |  version=0  |  environment=Production |  service_level=AO-Business Standard   |  company_id=2  |  top_se
+rvice=NO |  name=M2M REPORTING SERVER-PROD         | Danieles-MBP.station | main   | dahsboard | 1558513453 | .183      | 1  | Danieles-MBP.stationmain | localhost | string      | string     | 2019-05-22T10:24:1
+3.183+02:00
+ main~4~3E1FBD62-AB28-4A3C-93D0-5D509AC308D9 | 4:14430149 | 2      | 2019-05-22 10:24:13.183 |  id=10425 |  version=0  |  environment=Production |  service_level=DC - Business Premium  |  company_id=26 |  top_se
+rvice=NO |  name=GSOC-LOCAL SECURITY INCIDENT (CZ) | Danieles-MBP.station | main   | dahsboard | 1558513453 | .183      | 1  | Danieles-MBP.stationmain | localhost | string      | string     | 2019-05-22T10:24:1
+3.183+02:00
+ main~4~3E1FBD62-AB28-4A3C-93D0-5D509AC308D9 | 4:14430143 | 3      | 2019-05-22 10:24:13.183 |  id=10424 |  version=0  |  environment=Production |  service_level=Unknown                |  company_id=19 |  top_se
+rvice=NO |  name=VOCH_CALLMGMTSW                   | Danieles-MBP.station | main   | dahsboard | 1558513453 | .183      | 1  | Danieles-MBP.stationmain | localhost | string      | string     | 2019-05-22T10:24:1
+3.183+02:00
+ main~4~3E1FBD62-AB28-4A3C-93D0-5D509AC308D9 | 4:14430136 | 4      | 2019-05-22 10:24:13.183 |  id=10423 |  version=0  |  environment=Production |  service_level=DC - Business Standard |  company_id=24 |  top_se
+rvice=NO |  name=VFPT-TOL - VIRTUAL MACHINE        | Danieles-MBP.station | main   | dahsboard | 1558513453 | .183      | 1  | Danieles-MBP.stationmain | localhost | string      | string     | 2019-05-22T10:24:1
+3.183+02:00
 
-### 4. Stop the gpsscli job when you want to finalize the writing on Greenplum </br> 
-
-### 5. Have a look to the output table specified: </br> 
-Based on the mapping specified on the .yaml file of the gpsscli you should have in output the same entries you submitted in input.
-
-### 6. Try to personalize different output mapping: </br> 
-Based on your need you may want to put new fields from splunk like the timpestamp, the splunk server which originated the log ecc... you can extend the .yaml file to add this entries.
-Or you may want to store the entries in different way (for example storing all the .json as a type json in Greenplum directly)  </br> 
+### 6. Limitations: </br> 
+Currently just one segment per host will work. Not fully tested on multiple segments.
 
 ## Compiling the software:
 
