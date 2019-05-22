@@ -74,27 +74,7 @@ Just do a SELECT * FROM log_output;
 Then the /home/gpadmin/splunk_data.sh which is connecting to splunk and display csv lines will be invoked in order to see in a structured way:</br>
 dashboard=# select * from log_output limit 5; </br>
 
-                    _bkt                     |    _cd     | serial |           id            |  version  | environment |      service_level      |              comapany_id              |  top_service   |      na
-me       |              splunk_server              |        index         | source | indextime | subsecond  | linecount | si |         hostname         |    ip     | source_type | sourcetype |             time  
-            
----------------------------------------------+------------+--------+-------------------------+-----------+-------------+-------------------------+---------------------------------------+----------------+--------
----------+-----------------------------------------+----------------------+--------+-----------+------------+-----------+----+--------------------------+-----------+-------------+------------+-------------------
-------------
- main~4~3E1FBD62-AB28-4A3C-93D0-5D509AC308D9 | 4:14430163 | 0      | 2019-05-22 10:24:13.183 |  id=10427 |  version=0  |  environment=Production |  service_level=DC - Business Premium  |  company_id=24 |  top_se
-rvice=NO |  name=GSOC-LOCAL SECURITY INCIDENT (PT) | Danieles-MBP.station | main   | dahsboard | 1558513453 | .183      | 1  | Danieles-MBP.stationmain | localhost | string      | string     | 2019-05-22T10:24:1
-3.183+02:00
- main~4~3E1FBD62-AB28-4A3C-93D0-5D509AC308D9 | 4:14430156 | 1      | 2019-05-22 10:24:13.183 |  id=10426 |  version=0  |  environment=Production |  service_level=AO-Business Standard   |  company_id=2  |  top_se
-rvice=NO |  name=M2M REPORTING SERVER-PROD         | Danieles-MBP.station | main   | dahsboard | 1558513453 | .183      | 1  | Danieles-MBP.stationmain | localhost | string      | string     | 2019-05-22T10:24:1
-3.183+02:00
- main~4~3E1FBD62-AB28-4A3C-93D0-5D509AC308D9 | 4:14430149 | 2      | 2019-05-22 10:24:13.183 |  id=10425 |  version=0  |  environment=Production |  service_level=DC - Business Premium  |  company_id=26 |  top_se
-rvice=NO |  name=GSOC-LOCAL SECURITY INCIDENT (CZ) | Danieles-MBP.station | main   | dahsboard | 1558513453 | .183      | 1  | Danieles-MBP.stationmain | localhost | string      | string     | 2019-05-22T10:24:1
-3.183+02:00
- main~4~3E1FBD62-AB28-4A3C-93D0-5D509AC308D9 | 4:14430143 | 3      | 2019-05-22 10:24:13.183 |  id=10424 |  version=0  |  environment=Production |  service_level=Unknown                |  company_id=19 |  top_se
-rvice=NO |  name=VOCH_CALLMGMTSW                   | Danieles-MBP.station | main   | dahsboard | 1558513453 | .183      | 1  | Danieles-MBP.stationmain | localhost | string      | string     | 2019-05-22T10:24:1
-3.183+02:00
- main~4~3E1FBD62-AB28-4A3C-93D0-5D509AC308D9 | 4:14430136 | 4      | 2019-05-22 10:24:13.183 |  id=10423 |  version=0  |  environment=Production |  service_level=DC - Business Standard |  company_id=24 |  top_se
-rvice=NO |  name=VFPT-TOL - VIRTUAL MACHINE        | Danieles-MBP.station | main   | dahsboard | 1558513453 | .183      | 1  | Danieles-MBP.stationmain | localhost | string      | string     | 2019-05-22T10:24:1
-3.183+02:00
+![Screenshot](./images/external_table.png)
 
 ### 6. Limitations: </br> 
 Currently just one segment per host will work. Not fully tested on multiple segments.
