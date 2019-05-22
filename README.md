@@ -1,6 +1,6 @@
 ## Summary
 This software is intended to show how it is possible to integrate Splunk with Greenplum database. It exercises splunk java api 
-to make searches or to take all logs stored in Splunk and be able to query them also from Greenplum </br>
+to make searches or to take all logs stored in Splunk and be able to query them also from Greenplum using external tables </br>
 This software continues the experiment done here: </br>
 https://github.com/DanielePalaia/gpss-splunk </br>
 A java script is created, this script is connecting to splunk and printing in consolle splunk logs. The idea is that every host search for a different date range in order to work in parallel.
