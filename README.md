@@ -55,8 +55,8 @@ version=7.2.6
 ## Running the software:
 ### 1. Configuration file: </br>  
 In every segment host you need to specify a segment.properties file where you specify this parameters: </br>
-**earliest:2019-05-21T00:00:00**
-**latest:2019-05-21T23:59:00**
+**earliest:2019-05-21T00:00:00** </br>
+**latest:2019-05-21T23:59:00** </br>
 
 The idea is to specify different time range in different hosts.
 
