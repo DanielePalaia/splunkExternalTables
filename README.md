@@ -26,7 +26,7 @@ Once loaded into splunk it will start to generate events and you will start to s
 ### 2. Create a Greenplum external web table:
 Taking in account all informations contained in a splunk log, create an external web table like this:</br>
 
-CREATE EXTERNAL WEB TABLE log_output
+**CREATE EXTERNAL WEB TABLE log_output
     (_bkt text, _cd text, serial text, id text, version text, environment text, service_level text, comapany_id text, top_service text, name text, splunk_server text, index text, source text, indextime text, subsecond text, linecount text, si text, hostname text, ip text, source_type text, sourceType text, time text)
     EXECUTE '/home/gpadmin/splunk_data.sh' ON HOST
     FORMAT 'CSV';
@@ -68,14 +68,14 @@ java -jar /home/gpadmin/splunk-0.0.1-SNAPSHOT.jar "search * | head 100"</br>
 In this case will take just the first 100 elements but you can specify more
 
 
-### 5. Have a look to the external table specified </br> 
+### 3. Have a look to the external table specified </br> 
 Just do a SELECT * FROM log_output;
 Then the /home/gpadmin/splunk_data.sh which is connecting to splunk and display csv lines will be invoked in order to see in a structured way:</br>
 dashboard=# select * from log_output limit 5; </br>
 
 ![Screenshot](./images/external_table.png)
 
-### 6. Limitations: </br> 
+### 4. Limitations: </br> 
 Currently just one segment per host will work. Not fully tested on multiple segments.
 
 ## Compiling the software:
