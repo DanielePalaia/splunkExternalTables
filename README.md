@@ -39,7 +39,7 @@ For semplicity I put all fields as text but you can put the data type you want a
 Java needs to be installed on every host of the Greenplum distributed system </br> 
 In every segment host, you need also to create a .splunkrc  in your home directory specifying connection parameters like: </br>  
 
-host=localhost 
+host=localhost </br> 
 #Splunk admin port (default: 8089) </br> 
 port=8089   </br> 
 #Splunk username   
