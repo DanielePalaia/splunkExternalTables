@@ -30,7 +30,7 @@ CREATE EXTERNAL WEB TABLE log_output
     (_bkt text, _cd text, serial text, id text, version text, environment text, service_level text, comapany_id text, top_service text, name text, splunk_server text, index text, source text, indextime text, subsecond text, linecount text, si text, hostname text, ip text, source_type text, sourceType text, time text)
     EXECUTE '/home/gpadmin/splunk_data.sh' ON HOST
     FORMAT 'CSV';
-    </br>
+    </br></br>
 For semplicity I put all fields as text but you can put the data type you want accodingly to the info received
 </br>
 
@@ -54,7 +54,7 @@ version=7.2.6
  
 ## Running the software:
 ### 1. Configuration file: </br>  
-In every segment host you need to specify a segment.properties file where you specify this parameters: </br>
+In every segment host you need to specify a segment.properties file where you specify this parameters: </br></br>
 **earliest:2019-05-21T00:00:00** </br>
 **latest:2019-05-21T23:59:00** </br>
 
